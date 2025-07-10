@@ -8,15 +8,12 @@ import axios from "axios";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false)
-  const { serverUrl } = useContext(userDataContext)
+  const { serverUrl, setUserData } = useContext(userDataContext)
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  
   const [password, setPassword] = useState('');
-
-
   const [err, setErr] = useState('');
 
   const handleSignIn = async (e) => {
@@ -27,12 +24,13 @@ const SignIn = () => {
       let result = await axios.post(`${serverUrl}/api/auth/signin`, {
          email, password
       }, { withCredentials: true })
-      console.log(result.data);
+      setUserData(result.data);
       setLoading(false);
     } catch (error) {
       console.log(error);
+      setUserData && setUserData(null);
       setLoading(false);
-      setErr(error.response.data.message);
+      setErr(error.response?.data?.message || "Sign in failed");
     }
   }
   return (
@@ -72,11 +70,11 @@ const SignIn = () => {
           {showPassword && <IoIosEyeOff className='absolute right-[20px] top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer' onClick={() => setShowPassword(false)} />}
         </div>
 
-        {err.length>0 && <p className='text-red-500 text-[17px] mt-[10px]'>
+        {err.length > 0 && <p className='text-red-500 text-[17px] mt-[10px]'>
           {err}
-          </p>}
+        </p>}
 
-        <button className='w-[80%] h-[60px] bg-blue-500 text-white rounded-full text-[18px]' disabled={loading}>{loading?"Loading...":"Sign in"}</button>
+        <button className='w-[80%] h-[60px] bg-blue-500 text-white rounded-full text-[18px]' disabled={loading}>{loading ? "Loading..." : "Sign in"}</button>
         <p className='text-white text-[16px]' onClick={() => navigate('/signup')}>
           Want to create a new account? <span className='text-blue-400 cursor-pointer'>Sign Up</span></p>
       </form>

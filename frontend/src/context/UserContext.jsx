@@ -25,7 +25,7 @@ function UserContext({ children }) {
 
   const value = {
     serverUrl,
-    userData,
+    userData, setUserData,
     handleCurrentUser,
   };
 
