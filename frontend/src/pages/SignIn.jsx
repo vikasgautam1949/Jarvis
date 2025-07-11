@@ -26,6 +26,7 @@ const SignIn = () => {
       }, { withCredentials: true })
       setUserData(result.data);
       setLoading(false);
+       navigate('/customize');
     } catch (error) {
       console.log(error);
       setUserData && setUserData(null);

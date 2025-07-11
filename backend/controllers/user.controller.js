@@ -13,3 +13,5 @@ export const getCurrentUser = async (req, res) => {
     return res.status(500).json({ message: `Error fetching current user: ${error}` });
   }
 }
+
+
