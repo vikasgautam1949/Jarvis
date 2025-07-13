@@ -1,5 +1,5 @@
 import express from "express"
-import { getCurrentUser,updateAssistant } from "../controllers/user.controller.js";
+import { getCurrentUser,updateAssistant,askToAssistant } from "../controllers/user.controller.js";
 import isAuth from "../middlewares/isAuth.js";
 import upload from "../middlewares/multer.js"; // Assuming you have a middleware for handling file uploads
 const userRouter = express.Router()

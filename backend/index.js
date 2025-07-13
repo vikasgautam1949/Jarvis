@@ -23,24 +23,6 @@ app.use("/api/auth",authRouter)
 app.use("/api/user",userRouter)
 
 
-// app.get("/", async (req, res) => {
-//   try {
-//     let prompt = req.query.prompt
-//     console.log("Received prompt:", prompt);
-
-//     const data = await geminiResponse(prompt);
-//     res.json(data);
-//   } catch (error) {
-//     console.error("Error in / route:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-// app.get("/test",(req,res)=>{
-//   res.send("hello world")
-// })
-
-
 
 app.listen(port,()=>{
   connectDb()

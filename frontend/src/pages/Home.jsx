@@ -1,12 +1,13 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useContext } from 'react'
 import { userDataContext } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
+// import { getGeminiResponse } from '../context/userContext'
 import axios from 'axios'
 
 
 const Home = () => {
-  const { userData, serverUrl,setUserData } = useContext(userDataContext);
+  const { userData, serverUrl,setUserData,getGeminiResponse } = useContext(userDataContext);
   const navigate = useNavigate()
   const handleLogOut=async () =>{
     try {
@@ -19,11 +20,49 @@ const Home = () => {
     }
   }
 
+
+
+const speak = (text) => {
+  if (!text) return;
+  window.speechSynthesis.cancel(); // stop previous
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.volume = 1;
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  if (speechSynthesis.getVoices().length === 0) {
+    speechSynthesis.onvoiceschanged = () => {
+      speechSynthesis.speak(utterance);
+    };
+  } else {
+    speechSynthesis.speak(utterance);
+  }
+};
+
+useEffect(() => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+
   
+  recognition.continuous = true; // Keep recognition active
+  recognition.lang='en-US'; // Set language to English
 
+  recognition.onresult = async (event) => {
+    const transcript = event.results[event.results.length-1][0].transcript;
+    console.log("Recognized speech:", transcript);
 
-
-
+    if(transcript.toLowerCase().includes(userData?.assistantName.toLowerCase())) {
+     const data = await getGeminiResponse(transcript);
+      console.log("Gemini response:", data);
+      speak(data.response);
+      
+    }
+  }
+  
+  recognition.start();
+  
+  
+}, []);
 
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px]'>

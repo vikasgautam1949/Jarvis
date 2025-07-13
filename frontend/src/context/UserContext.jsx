@@ -24,26 +24,7 @@ function UserContext({ children }) {
   };
 
 
-
-
-
-
-  //  const getGeminiResponse = async (command, assistantName) => {
-  //   try {
-  //     const result = await axios.post(`${serverUrl}/api/gemini`, {
-  //       command,
-  //       assistantName,
-  //     }, {
-  //       withCredentials: true,
-  //     });
-  //     return result.data;
-  //   }
-  //   catch (error) {
-  //     console.error("Error getting Gemini response:", error);
-  //     throw error;
-  //   }
-
-   const getGeminiResponse = async (command, assistantName) => {
+     const getGeminiResponse = async (command, assistantName) => {
     try {
       const result = await axios.post(`${serverUrl}/api/user/asktoassistant`, {
         command,
