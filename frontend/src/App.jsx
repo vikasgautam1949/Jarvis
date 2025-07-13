@@ -13,23 +13,23 @@ const App = () => {
 
   return (
     <Routes>
-      {/* <Route 
+      <Route 
         path="/" 
         element={
           (userData?.assistantImage && userData?.assistantName )
             ? <Home /> 
             : <Navigate to={"/customize"} />
         } 
-      /> */}
+      />
 
-      <Route path="/" element={<Home />} />
+      {/* <Route path="/" element={<Home />} /> */}
 
       <Route 
         path="/signup" 
         element={
           !userData 
             ? <SignUp /> 
-            : <Navigate to={'/customize'} />
+            : <Navigate to={'/'} />
         } 
       />
       <Route 

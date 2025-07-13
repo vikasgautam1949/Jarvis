@@ -6,6 +6,7 @@ const userRouter = express.Router()
 
 userRouter.get("/current",isAuth, getCurrentUser)
 userRouter.post("/update", isAuth, upload.single("assistantImage"), updateAssistant)
+userRouter.post("/asktoassistant", isAuth, askToAssistant) // Uncomment if you have an askToAssistant function
 
 
 export default userRouter

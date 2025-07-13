@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { createContext, useState, useEffect } from "react";
 
+
 export const userDataContext = createContext();
 
 function UserContext({ children }) {
@@ -22,6 +23,53 @@ function UserContext({ children }) {
     }
   };
 
+
+
+
+
+
+  //  const getGeminiResponse = async (command, assistantName) => {
+  //   try {
+  //     const result = await axios.post(`${serverUrl}/api/gemini`, {
+  //       command,
+  //       assistantName,
+  //     }, {
+  //       withCredentials: true,
+  //     });
+  //     return result.data;
+  //   }
+  //   catch (error) {
+  //     console.error("Error getting Gemini response:", error);
+  //     throw error;
+  //   }
+
+   const getGeminiResponse = async (command, assistantName) => {
+    try {
+      const result = await axios.post(`${serverUrl}/api/user/asktoassistant`, {
+        command,
+        assistantName,
+      }, {
+        withCredentials: true,
+      });
+      return result.data;
+      
+    } catch (error) {
+      console.log(error);
+    }
+   }
+
+
+
+
+
+
+
+
+
+
+
+
+
   useEffect(() => {
     handleCurrentUser();
   }, []);
@@ -32,7 +80,8 @@ function UserContext({ children }) {
     handleCurrentUser,
     backendImage, setbackendImage,
     frontendImage, setfrontendImage,
-    selectedImage, setSelectedImage
+    selectedImage, setSelectedImage, 
+    getGeminiResponse
   };
 
   return (

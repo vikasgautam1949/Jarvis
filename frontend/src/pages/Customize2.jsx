@@ -14,27 +14,19 @@ const Customize2 = () => {
   const [loading, setLoading] = useState(false);
 
   const handleUpdateAssistant = async () => {
-    // if (!assistantName) {
-    //   console.error('Assistant name is required');
-    //   return;
-    // }
-
+    
     try {
       setLoading(true);
-    const formData = new FormData();
+   let formData = new FormData();
 formData.append('assistantName', assistantName);
 
 if (backendImage) {
   formData.append('assistantImage', backendImage);
-} else if (selectedImage) {
+} else {
   formData.append('imageUrl', selectedImage); // fallback for predefined images
 }
-
 const result = await axios.post(`${serverUrl}/api/user/update`, formData, {
   withCredentials: true,
-  headers: {
-    'Content-Type': 'multipart/form-data'
-  }
 });
 
 console.log('Updated user from server:', result.data);
