@@ -10,8 +10,12 @@ import image7 from '../assets/image7.jpeg'
 import { FaFileImage } from "react-icons/fa6";
 import { userDataContext } from "../context/UserContext";
 import { useNavigate } from 'react-router-dom'
+import { IoArrowBackOutline } from "react-icons/io5";
+
 
 const Customize = () => {
+  const inputImage = useRef();
+  
   const {
     serverUrl,
     userData, setUserData,
@@ -21,17 +25,20 @@ const Customize = () => {
     selectedImage, setSelectedImage
   } = useContext(userDataContext);
   const navigate = useNavigate();
-
-  const inputImage = useRef();
-
+  
+  
   const handleImage = (e) => {
     const file = e.target.files[0];
     setbackendImage(file);
     setfrontendImage(URL.createObjectURL(file));
-  };
-
+  }
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col p-[20px]'>
+
+       <IoArrowBackOutline
+  className='absolute z-50 top-[30px] left-[30px] text-white w-[25px] h-[25px] cursor-pointer'
+  onClick={() => { console.log("clicked"); navigate("/"); }}
+/>
       <h1 className='text-white text-[30px] font-semibold mb-[30px]'>
         Select your <span className='text-blue-400'>Virtual Assistant</span>
       </h1>
@@ -47,8 +54,8 @@ const Customize = () => {
         <div
           className={`w-[70px] h-[140px] lg:w-[150px] lg:h-[250px] bg-[#030326] border-2 border-[blue] rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:shadow-blue-950 cursor-pointer hover:border-white flex justify-center items-center flex-col ${selectedImage === "input" ? "border-4 border-white shadow-2xl shadow-blue-950" : ""}`}
           onClick={() => {
-            setSelectedImage("input");
             inputImage.current.click();
+            setSelectedImage("input");
           }}
         >
           {!frontendImage && <FaFileImage className='text-white w-[25px] h-[25px]' />}
