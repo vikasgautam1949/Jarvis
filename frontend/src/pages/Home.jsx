@@ -21,48 +21,138 @@ const Home = () => {
   }
 
 
-
-const speak = (text) => {
-  if (!text) return;
-  window.speechSynthesis.cancel(); // stop previous
+const speak=(text)=>{
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.volume = 1;
-  utterance.rate = 1;
-  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
+}
 
-  if (speechSynthesis.getVoices().length === 0) {
-    speechSynthesis.onvoiceschanged = () => {
-      speechSynthesis.speak(utterance);
-    };
-  } else {
-    speechSynthesis.speak(utterance);
+const handleCommand = (data) => {
+  const { type, userInput, response } = data;
+  speak(response);
+
+  if (type === 'google_search') {
+    const query= encodeURIComponent(userInput);
+    window.open(`https://www.google.com/search?q=${query}`, '_blank');
   }
-};
+
+  if (type === 'youtube_search') {
+    const query = encodeURIComponent(userInput);  
+    window.open(`https://www.youtube.com/results?search_query=${query}`);
+  }
+  if (type === 'youtube_play') {
+    const query = encodeURIComponent(userInput);
+    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+  }
+  if (type === 'calculator_open') {
+    window.open('https://www.calculator.net/', '_blank');
+  }
+  if (type === 'instagram_open') {
+    window.open('https://www.instagram.com/', '_blank');
+  }
+  if (type === 'facebook_open') {
+    window.open('https://www.facebook.com/', '_blank');
+  }
+  if (type === 'weather_show') {
+    window.open('https://www.weather.com/', '_blank');
+  }
+  if (type === 'general') {
+    // Handle general responses if needed
+
+  }
+}
+
+// const speak = (text) => {
+//   if (!text) return;
+
+//   const synth = window.speechSynthesis;
+//   const voices = synth.getVoices();
+
+//   const utterance = new SpeechSynthesisUtterance(text);
+//   utterance.volume = 1;
+//   utterance.rate = 1;
+//   utterance.pitch = 1;
+
+//   if (voices.length > 0) {
+//     utterance.voice = voices.find(voice => voice.lang === 'en-US') || voices[0];
+//   }
+
+//   synth.cancel(); // stop any previous speech
+//   synth.speak(utterance);
+// };
+
+
+// const speak = (text) => {
+//   if (!text) return;
+//   window.speechSynthesis.cancel(); // stop previous
+//   const utterance = new SpeechSynthesisUtterance(text);
+//   utterance.volume = 1;
+//   utterance.rate = 1;
+//   utterance.pitch = 1;
+
+//   if (speechSynthesis.getVoices().length === 0) {
+//     speechSynthesis.onvoiceschanged = () => {
+//       speechSynthesis.speak(utterance);
+//     };
+//   } else {
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// useEffect(() => {
+//   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//   const recognition = new SpeechRecognition();
+
+  
+//   recognition.continuous = true; // Keep recognition active
+//   recognition.lang='en-US'; // Set language to English
+
+//   recognition.onresult = async (event) => {
+//     const transcript = event.results[event.results.length-1][0].transcript;
+//     console.log("Recognized speech:", transcript);
+
+//     if(transcript.toLowerCase().includes(userData?.assistantName.toLowerCase())) {
+//      const data = await getGeminiResponse(transcript);
+//       console.log("Gemini response:", data);
+      
+//       speak(data.response);
+//     }
+//   }
+  
+//   recognition.start();
+  
+  
+// }, []);
+
 
 useEffect(() => {
+  if (!userData || !userData.assistantName || !getGeminiResponse) return;
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
 
-  
-  recognition.continuous = true; // Keep recognition active
-  recognition.lang='en-US'; // Set language to English
+  recognition.continuous = true;
+  recognition.lang = 'en-US';
 
   recognition.onresult = async (event) => {
-    const transcript = event.results[event.results.length-1][0].transcript;
+    const transcript = event.results[event.results.length - 1][0].transcript;
     console.log("Recognized speech:", transcript);
 
-    if(transcript.toLowerCase().includes(userData?.assistantName.toLowerCase())) {
-     const data = await getGeminiResponse(transcript);
+    if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
+      const data = await getGeminiResponse(transcript);
       console.log("Gemini response:", data);
       speak(data.response);
-      
+      handleCommand(data);
     }
-  }
-  
-  recognition.start();
-  
-  
-}, []);
+  };
+
+  //  Don't auto-start, wait for user click
+   recognition.start();
+
+  return () => {
+    recognition.stop();
+  };
+}, [userData, getGeminiResponse]);
+
 
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px]'>
