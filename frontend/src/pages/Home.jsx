@@ -1,183 +1,200 @@
-import React, { useEffect } from 'react'
-import { useContext } from 'react'
-import { userDataContext } from '../context/UserContext'
-import { useNavigate } from 'react-router-dom'
-// import { getGeminiResponse } from '../context/userContext'
-import axios from 'axios'
-
+import React, { useEffect, useRef, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { userDataContext } from '../context/UserContext';
+import axios from 'axios';
 
 const Home = () => {
-  const { userData, serverUrl,setUserData,getGeminiResponse } = useContext(userDataContext);
-  const navigate = useNavigate()
-  const handleLogOut=async () =>{
+  const { userData, serverUrl, setUserData, getGeminiResponse } = useContext(userDataContext);
+  const navigate = useNavigate();
+  const [listening, setListening] = useState(false);
+
+  const recognitionRef = useRef(null);
+  const isSpeakingRef = useRef(false);
+  const isRecognizingRef = useRef(false);
+  const synth = window.speechSynthesis;
+
+  const handleLogOut = async () => {
     try {
-      await axios.get(`${serverUrl}/api/auth/logout`,{withCredentials:true})
-      setUserData(null)
-      navigate("/signin")
+      await axios.get(`${serverUrl}/api/auth/logout`, { withCredentials: true });
+      setUserData(null);
+      navigate('/signin');
     } catch (error) {
-      setUserData(null)
-      console.log(error);
+      setUserData(null);
+      console.error(error);
     }
-  }
+  };
 
+  const startRecognition = () => {
+    try {
+      recognitionRef.current?.start();
+      setListening(true);
+    } catch (error) {
+      if (!error.message.includes('start')) {
+        console.error('Recognition error:', error);
+      }
+    }
+  };
 
-const speak=(text)=>{
-  const utterance = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.speak(utterance);
-}
+  const speak = (text) => {
+    if (!text || synth.speaking) {
+      console.warn('Speech skipped or overlapping:', text);
+      return;
+    }
 
-const handleCommand = (data) => {
-  const { type, userInput, response } = data;
-  speak(response);
+    const utterance = new SpeechSynthesisUtterance(text);
+    isSpeakingRef.current = true;
 
-  if (type === 'google_search') {
-    const query= encodeURIComponent(userInput);
-    window.open(`https://www.google.com/search?q=${query}`, '_blank');
-  }
+    utterance.onend = () => {
+      isSpeakingRef.current = false;
+      startRecognition();
+    };
 
-  if (type === 'youtube_search') {
-    const query = encodeURIComponent(userInput);  
-    window.open(`https://www.youtube.com/results?search_query=${query}`);
-  }
-  if (type === 'youtube_play') {
+    utterance.onerror = (e) => {
+      console.error('Speech synthesis error:', e);
+      isSpeakingRef.current = false;
+      startRecognition();
+    };
+
+    synth.speak(utterance);
+  };
+
+  const handleCommand = (data) => {
+    const { type, userInput, response } = data;
+    speak(response);
     const query = encodeURIComponent(userInput);
-    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
-  }
-  if (type === 'calculator_open') {
-    window.open('https://www.calculator.net/', '_blank');
-  }
-  if (type === 'instagram_open') {
-    window.open('https://www.instagram.com/', '_blank');
-  }
-  if (type === 'facebook_open') {
-    window.open('https://www.facebook.com/', '_blank');
-  }
-  if (type === 'weather_show') {
-    window.open('https://www.weather.com/', '_blank');
-  }
-  if (type === 'general') {
-    // Handle general responses if needed
+    const openUrl = (url) => window.open(url, '_blank');
 
-  }
-}
-
-// const speak = (text) => {
-//   if (!text) return;
-
-//   const synth = window.speechSynthesis;
-//   const voices = synth.getVoices();
-
-//   const utterance = new SpeechSynthesisUtterance(text);
-//   utterance.volume = 1;
-//   utterance.rate = 1;
-//   utterance.pitch = 1;
-
-//   if (voices.length > 0) {
-//     utterance.voice = voices.find(voice => voice.lang === 'en-US') || voices[0];
-//   }
-
-//   synth.cancel(); // stop any previous speech
-//   synth.speak(utterance);
-// };
-
-
-// const speak = (text) => {
-//   if (!text) return;
-//   window.speechSynthesis.cancel(); // stop previous
-//   const utterance = new SpeechSynthesisUtterance(text);
-//   utterance.volume = 1;
-//   utterance.rate = 1;
-//   utterance.pitch = 1;
-
-//   if (speechSynthesis.getVoices().length === 0) {
-//     speechSynthesis.onvoiceschanged = () => {
-//       speechSynthesis.speak(utterance);
-//     };
-//   } else {
-//     speechSynthesis.speak(utterance);
-//   }
-// };
-
-// useEffect(() => {
-//   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-//   const recognition = new SpeechRecognition();
-
-  
-//   recognition.continuous = true; // Keep recognition active
-//   recognition.lang='en-US'; // Set language to English
-
-//   recognition.onresult = async (event) => {
-//     const transcript = event.results[event.results.length-1][0].transcript;
-//     console.log("Recognized speech:", transcript);
-
-//     if(transcript.toLowerCase().includes(userData?.assistantName.toLowerCase())) {
-//      const data = await getGeminiResponse(transcript);
-//       console.log("Gemini response:", data);
-      
-//       speak(data.response);
-//     }
-//   }
-  
-//   recognition.start();
-  
-  
-// }, []);
-
-
-useEffect(() => {
-  if (!userData || !userData.assistantName || !getGeminiResponse) return;
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-
-  recognition.continuous = true;
-  recognition.lang = 'en-US';
-
-  recognition.onresult = async (event) => {
-    const transcript = event.results[event.results.length - 1][0].transcript;
-    console.log("Recognized speech:", transcript);
-
-    if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
-      const data = await getGeminiResponse(transcript);
-      console.log("Gemini response:", data);
-      speak(data.response);
-      handleCommand(data);
+    switch (type) {
+      case 'google_search':
+        openUrl(`https://www.google.com/search?q=${query}`);
+        break;
+      case 'youtube_search':
+      case 'youtube_play':
+        openUrl(`https://www.youtube.com/results?search_query=${query}`);
+        break;
+      case 'calculator_open':
+        openUrl('https://www.calculator.net/');
+        break;
+      case 'instagram_open':
+        openUrl('https://www.instagram.com/');
+        break;
+      case 'facebook_open':
+        openUrl('https://www.facebook.com/');
+        break;
+      case 'weather_show':
+        openUrl('https://www.weather.com/');
+        break;
+      default:
+        break;
     }
   };
 
-  //  Don't auto-start, wait for user click
-   recognition.start();
+  useEffect(() => {
+    if (!userData || !userData.assistantName || !getGeminiResponse) return;
 
-  return () => {
-    recognition.stop();
-  };
-}, [userData, getGeminiResponse]);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = 'en-US';
+    recognitionRef.current = recognition;
 
+    const safeRecognition = () => {
+      if (!isSpeakingRef.current && !isRecognizingRef.current) {
+        try {
+          recognition.start();
+          console.log('Recognition started by safeRecognition');
+        } catch (err) {
+          if (err.name !== 'InvalidStateError') {
+            console.error('safeRecognition start error:', err);
+          }
+        }
+      }
+    };
+
+    recognition.onstart = () => {
+      console.log('Recognition started');
+      isRecognizingRef.current = true;
+      setListening(true);
+    };
+
+    recognition.onend = () => {
+      console.log('Recognition ended');
+      isRecognizingRef.current = false;
+      setListening(false);
+      setTimeout(safeRecognition, 1000);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Recognition error:', event.error);
+      isRecognizingRef.current = false;
+      setListening(false);
+
+      if (event.error !== 'aborted' && !isSpeakingRef.current) {
+        setTimeout(safeRecognition, 1000);
+      }
+    };
+
+    recognition.onresult = async (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      console.log('Recognized speech:', transcript);
+
+      if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
+        recognition.stop();
+        isRecognizingRef.current = false;
+        setListening(false);
+
+        const data = await getGeminiResponse(transcript);
+        console.log('Gemini response:', data);
+        handleCommand(data);
+      }
+    };
+
+    // Keep recognition active every 10s if it stops
+    const fallback = setInterval(() => {
+      if (!isSpeakingRef.current && !isRecognizingRef.current) {
+        safeRecognition();
+      }
+    }, 10000);
+
+    // Start initial recognition
+    setTimeout(safeRecognition, 1000);
+
+    return () => {
+      recognition.stop();
+      isRecognizingRef.current = false;
+      setListening(false);
+      clearInterval(fallback);
+    };
+  }, [userData, getGeminiResponse]);
 
   return (
-    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px]'>
+    <div className="w-full h-[100vh] bg-gradient-to-t from-black to-[#02023d] flex justify-center items-center flex-col gap-[15px]">
+      <button
+        className="min-w-[150px] h-[60px] mt-[30px] text-black font-semibold bg-white absolute top-[20px] right-[20px] rounded-full text-[19px] cursor-pointer"
+        onClick={handleLogOut}
+      >
+        Log Out
+      </button>
 
-      <button className='min-w-[150px] h-[60px] mt-[30px] text-black font-semibold bg-white absolute top-[20px] right-[20px] rounded-full text-[19px] cursor-pointer' onClick={handleLogOut} >Log Out
-        </button>
-       
-        <button className='min-w-[150px] h-[60px] mt-[30px] text-black font-semibold bg-white absolute top-[100px] right-[20px] rounded-full text-[19px] px-[20px] py-[10px] cursor-pointer' onClick={()=>navigate("/customize")} > Customize Your Assistant
-        </button>
-        
-      <div className='w-[300px] h-[400px] flex justify-center items-center flex-col gap-[20px] overflow-hidden rounded-4xl shadow-lg shadow-blue-950'>
+      <button
+        className="min-w-[150px] h-[60px] mt-[30px] text-black font-semibold bg-white absolute top-[100px] right-[20px] rounded-full text-[19px] px-[20px] py-[10px] cursor-pointer"
+        onClick={() => navigate('/customize')}
+      >
+        Customize Your Assistant
+      </button>
 
-
-    <img src={userData?.assistantImage} alt="Assistant image" className='w-full h-full object-cover rounded-4xl'
-      
-    />
-    {console.log("assistantImage:", userData?.assistantImage)}
-
-
+      <div className="w-[300px] h-[400px] flex justify-center items-center flex-col gap-[20px] overflow-hidden rounded-4xl shadow-lg shadow-blue-950">
+        <img
+          src={userData?.assistantImage}
+          alt="Assistant"
+          className="w-full h-full object-cover rounded-4xl"
+        />
+        {console.log('assistantImage:', userData?.assistantImage)}
       </div>
-    <h1 className='text-white text-[18px] font-semibold '>I'm {userData.assistantName}</h1>
-    
-       
-    </div>
-  )
-}
 
-export default Home
+      <h1 className="text-white text-[18px] font-semibold">I'm {userData?.assistantName}</h1>
+    </div>
+  );
+};
+
+export default Home;
