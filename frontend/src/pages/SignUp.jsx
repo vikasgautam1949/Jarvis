@@ -1,115 +1,110 @@
-
 import React, { useState, useContext } from 'react';
 import bg from '../assets/authBg.png';
 import { TiEye } from "react-icons/ti";
 import { IoIosEyeOff } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
-import { userDataContext } from "../context/UserContext";
-import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { userDataContext } from '../context/UserContext';
 
 const SignUp = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const { serverUrl, setUserData } = useContext(userDataContext);
-  const navigate = useNavigate();
-
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { serverUrl } = useContext(userDataContext);
+  const navigate = useNavigate();
 
-  const handleSignUp = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setErr('');
-
-    if (password !== confirmPassword) {
-      return setErr("Passwords do not match");
-    }
-
     setLoading(true);
+
     try {
-      const result = await axios.post(`${serverUrl}/api/auth/signup`, {
+      await axios.post(`${serverUrl}/api/auth/signup`, {
+        name,
         email,
-        password,
+        password
       }, { withCredentials: true });
 
-      setUserData(result.data);
       setLoading(false);
-      navigate('/'); // Redirect after successful signup
+      navigate('/signin');
     } catch (error) {
-      console.log(error);
-      setUserData && setUserData(null);
-      setErr(error.response?.data?.message || "Sign up failed");
+      console.error(error);
       setLoading(false);
+      setErr(error.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div
-      className='w-full h-[100vh] flex justify-center items-center'
-      style={{
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
-    >
+    <div className='w-full h-screen bg-gradient-to-t from-black to-[#02023d] flex justify-center items-center flex-col' style={{ backgroundImage: `url(${bg})`, backgroundSize: 'cover' }}>
       <form
-        onSubmit={handleSignUp}
-        className='w-[90%] h-[650px] max-w-[500px] bg-[#00000083] backdrop-blur shadow-lg shadow-black flex flex-col justify-center items-center gap-[20px] px-[20px]'
+        onSubmit={handleRegister}
+        className='w-[90%] h-[600px] max-w-[500px] bg-[#00000069] backdrop-blur-md flex flex-col p-5 rounded-lg shadow-lg shadow-blue-950 justify-center gap-5'
       >
-        <h1 className='text-white text-[30px] font-semibold mb-[30px]'>
-          Create Account on <span className='text-blue-400'>Virtual Assistant</span>
+        <h1 className='text-white text-2xl font-semibold mb-4'>
+          Register to <span className='text-blue-400'>Virtual Assistant</span>
         </h1>
 
         <input
-          type="email"
-          placeholder='Enter your email'
-          className='w-[80%] h-[60px] outline-none border-2 border-white bg-transparent text-white placeholder-gray-300 px-[20px] py-[10px] rounded-full text-[18px]'
+          type="text"
+          placeholder='Enter your Name'
+          className='w-full h-[60px] outline-none border-2 border-white bg-transparent text-white placeholder-gray-300 px-5 py-2 rounded-full text-lg'
           required
-          onChange={(e) => setEmail(e.target.value)}
-          value={email}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
 
-        {/* Password Field */}
-        <div className='w-[80%] h-[60px] border-2 border-white bg-transparent text-white rounded-full text-[18px] relative flex items-center'>
+        <input
+          type="email"
+          placeholder='Enter your Email'
+          className='w-full h-[60px] outline-none border-2 border-white bg-transparent text-white placeholder-gray-300 px-5 py-2 rounded-full text-lg'
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <div className='w-full h-[60px] border-2 border-white bg-transparent text-white rounded-full text-lg relative flex items-center'>
           <input
             type={showPassword ? "text" : "password"}
-            placeholder='Enter your password'
-            className='w-full h-full outline-none bg-transparent text-white placeholder-gray-300 px-[20px] py-[10px] pr-[45px] rounded-full text-[18px]'
+            placeholder='Enter your Password'
+            className='w-full h-full outline-none bg-transparent text-white placeholder-gray-300 px-5 py-2 rounded-full pr-[45px]'
             required
-            onChange={(e) => setPassword(e.target.value)}
             value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          {!showPassword
-            ? <TiEye className='absolute right-[20px] top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer' onClick={() => setShowPassword(true)} />
-            : <IoIosEyeOff className='absolute right-[20px] top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer' onClick={() => setShowPassword(false)} />}
+          {!showPassword ? (
+            <TiEye
+              className='absolute right-5 top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer'
+              onClick={() => setShowPassword(true)}
+            />
+          ) : (
+            <IoIosEyeOff
+              className='absolute right-5 top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer'
+              onClick={() => setShowPassword(false)}
+            />
+          )}
         </div>
 
-        {/* Confirm Password Field */}
-        <div className='w-[80%] h-[60px] border-2 border-white bg-transparent text-white rounded-full text-[18px] relative flex items-center'>
-          <input
-            type={showConfirm ? "text" : "password"}
-            placeholder='Confirm your password'
-            className='w-full h-full outline-none bg-transparent text-white placeholder-gray-300 px-[20px] py-[10px] pr-[45px] rounded-full text-[18px]'
-            required
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            value={confirmPassword}
-          />
-          {!showConfirm
-            ? <TiEye className='absolute right-[20px] top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer' onClick={() => setShowConfirm(true)} />
-            : <IoIosEyeOff className='absolute right-[20px] top-1/2 -translate-y-1/2 text-[24px] text-white cursor-pointer' onClick={() => setShowConfirm(false)} />}
-        </div>
+        {err.length > 0 && (
+          <p className='text-red-500 text-[17px] mt-[10px]'>{err}</p>
+        )}
 
-        {err.length > 0 && <p className='text-red-500 text-[17px] mt-[10px]'>{err}</p>}
-
-        <button className='w-[80%] h-[60px] bg-blue-500 text-white rounded-full text-[18px]' disabled={loading}>
-          {loading ? "Creating Account..." : "Sign Up"}
+        <button
+          type='submit'
+          className='w-full h-[60px] bg-blue-400 text-white font-semibold text-lg rounded-full cursor-pointer hover:bg-blue-500 transition-all duration-300'
+          disabled={loading}
+        >
+          {loading ? "Registering..." : "Sign Up"}
         </button>
 
-        <p className='text-white text-[16px] mt-[10px]' onClick={() => navigate('/signin')}>
-          Already have an account? <span className='text-blue-400 cursor-pointer'>Sign In</span>
+        <p className='text-white text-[16px] text-center'>
+          Already have an account?{' '}
+          <span className='text-blue-400 cursor-pointer' onClick={() => navigate('/signin')}>
+            Sign In
+          </span>
         </p>
       </form>
     </div>

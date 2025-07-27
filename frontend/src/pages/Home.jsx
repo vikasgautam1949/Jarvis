@@ -24,6 +24,181 @@ const Home = () => {
     }
   };
 
+  const speak = (text) => {
+    if (!text) return;
+
+    const speakWithVoice = () => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'hi-IN';
+
+      const voices = synth.getVoices();
+      const hindiVoice = voices.find(v => v.lang === 'hi-IN' || v.name.toLowerCase().includes('hindi'));
+
+      if (hindiVoice) {
+        utterance.voice = hindiVoice;
+      } else {
+        console.warn('Hindi voice not found, using default.');
+      }
+
+      isSpeakingRef.current = true;
+
+      utterance.onend = () => {
+        isSpeakingRef.current = false;
+        startRecognition();
+      };
+
+      utterance.onerror = (e) => {
+        console.error('Speech synthesis error:', e);
+        isSpeakingRef.current = false;
+        startRecognition();
+      };
+
+      synth.speak(utterance);
+    };
+
+    if (synth.getVoices().length === 0) {
+      synth.onvoiceschanged = () => {
+        speakWithVoice();
+      };
+    } else {
+      speakWithVoice();
+    }
+  };
+
+  // const handleCommand = (data) => {
+  //   const { type, userInput, response } = data;
+  //   speak(response);
+  //   const query = encodeURIComponent(userInput);
+  //   const openUrl = (url) => window.open(url, '_blank');
+
+  //   switch (type) {
+  //     case 'google_search':
+  //       openUrl(`https://www.google.com/search?q=${query}`);
+  //       break;
+  //     case 'youtube_search':
+  //     case 'youtube_play':
+  //       openUrl(`https://www.youtube.com/results?search_query=${query}`);
+  //       break;
+  //     case 'calculator_open':
+  //       openUrl('https://www.calculator.net/');
+  //       break;
+  //     case 'instagram_open':
+  //       openUrl('https://www.instagram.com/');
+  //       break;
+  //     case 'facebook_open':
+  //       openUrl('https://www.facebook.com/');
+  //       break;
+  //     case 'weather_show':
+  //       openUrl('https://www.weather.com/');
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // };
+
+
+
+
+
+const handleCommand = (data) => {
+  const { type, userInput, response } = data;
+  const query = encodeURIComponent(userInput);
+  const openUrl = (url) => window.open(url, '_blank');
+
+  // If Gemini response doesn't include a known type, speak the apology
+  const knownTypes = new Set([
+    'general', 'google_search', 'youtube_search', 'youtube_play',
+    'wikipedia_search', 'news_show', 'get_time', 'get_date', 'get_day',
+    'get_month', 'get_year', 'calculator_open', 'instagram_open',
+    'facebook_open', 'whatsapp_open', 'gmail_open', 'maps_open',
+    'linkedin_open', 'youtube_open', 'google_open', 'play_music',
+    'camera_open', 'open_settings', 'weather_show'
+  ]);
+
+  if (!knownTypes.has(type)) {
+    speak("Sorry, I didn't understand that command.");
+  } else {
+    speak(response); // Only speak Gemini's response if type is known
+  }
+
+  // Always try running the command
+  switch (type) {
+    case 'google_search':
+      openUrl(`https://www.google.com/search?q=${query}`);
+      break;
+    case 'youtube_search':
+    case 'youtube_play':
+      openUrl(`https://www.youtube.com/results?search_query=${query}`);
+      break;
+    case 'wikipedia_search':
+      openUrl(`https://en.wikipedia.org/wiki/${query}`);
+      break;
+    case 'news_show':
+      openUrl(`https://news.google.com`);
+      break;
+    case 'calculator_open':
+      openUrl('https://www.calculator.net/');
+      break;
+    case 'instagram_open':
+      openUrl('https://www.instagram.com/');
+      break;
+    case 'facebook_open':
+      openUrl('https://www.facebook.com/');
+      break;
+    case 'whatsapp_open':
+      openUrl('https://web.whatsapp.com/');
+      break;
+    case 'weather_show':
+         openUrl('https://www.weather.com/');
+        break;
+    case 'gmail_open':
+      openUrl('https://mail.google.com/');
+      break;
+    case 'maps_open':
+      openUrl(`https://www.google.com/maps/search/${query}`);
+      break;
+    case 'linkedin_open':
+      openUrl('https://www.linkedin.com/');
+      break;
+    case 'youtube_open':
+      openUrl('https://www.youtube.com/');
+      break;
+    case 'google_open':
+      openUrl('https://www.google.com/');
+      break;
+    case 'play_music':
+      openUrl(`https://open.spotify.com/search/${query}`);
+      break;
+    case 'camera_open':
+      speak("Sorry, camera access is restricted in browsers.");
+      break;
+    case 'open_settings':
+      speak("Settings feature is not implemented yet.");
+      break;
+    case 'get_time':
+      speak(`The current time is ${new Date().toLocaleTimeString()}`);
+      break;
+    case 'get_date':
+      speak(`Today's date is ${new Date().toLocaleDateString()}`);
+      break;
+    case 'get_day':
+      speak(`Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long' })}`);
+      break;
+    case 'get_month':
+      speak(`This month is ${new Date().toLocaleDateString('en-US', { month: 'long' })}`);
+      break;
+    case 'get_year':
+      speak(`The year is ${new Date().getFullYear()}`);
+      break;
+    case 'general':
+      // already spoken above
+      break;
+    default:
+      // Nothing to run, maybe an unrecognized type
+      break;
+  }
+};
+
   const startRecognition = () => {
     try {
       recognitionRef.current?.start();
@@ -35,65 +210,12 @@ const Home = () => {
     }
   };
 
-  const speak = (text) => {
-    if (!text || synth.speaking) {
-      console.warn('Speech skipped or overlapping:', text);
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    isSpeakingRef.current = true;
-
-    utterance.onend = () => {
-      isSpeakingRef.current = false;
-      startRecognition();
-    };
-
-    utterance.onerror = (e) => {
-      console.error('Speech synthesis error:', e);
-      isSpeakingRef.current = false;
-      startRecognition();
-    };
-
-    synth.speak(utterance);
-  };
-
-  const handleCommand = (data) => {
-    const { type, userInput, response } = data;
-    speak(response);
-    const query = encodeURIComponent(userInput);
-    const openUrl = (url) => window.open(url, '_blank');
-
-    switch (type) {
-      case 'google_search':
-        openUrl(`https://www.google.com/search?q=${query}`);
-        break;
-      case 'youtube_search':
-      case 'youtube_play':
-        openUrl(`https://www.youtube.com/results?search_query=${query}`);
-        break;
-      case 'calculator_open':
-        openUrl('https://www.calculator.net/');
-        break;
-      case 'instagram_open':
-        openUrl('https://www.instagram.com/');
-        break;
-      case 'facebook_open':
-        openUrl('https://www.facebook.com/');
-        break;
-      case 'weather_show':
-        openUrl('https://www.weather.com/');
-        break;
-      default:
-        break;
-    }
-  };
-
   useEffect(() => {
     if (!userData || !userData.assistantName || !getGeminiResponse) return;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+
     recognition.continuous = true;
     recognition.lang = 'en-US';
     recognitionRef.current = recognition;
@@ -102,23 +224,21 @@ const Home = () => {
       if (!isSpeakingRef.current && !isRecognizingRef.current) {
         try {
           recognition.start();
-          console.log('Recognition started by safeRecognition');
+          console.log('Recognition started');
         } catch (err) {
           if (err.name !== 'InvalidStateError') {
-            console.error('safeRecognition start error:', err);
+            console.error('Safe recognition start error:', err);
           }
         }
       }
     };
 
     recognition.onstart = () => {
-      console.log('Recognition started');
       isRecognizingRef.current = true;
       setListening(true);
     };
 
     recognition.onend = () => {
-      console.log('Recognition ended');
       isRecognizingRef.current = false;
       setListening(false);
       setTimeout(safeRecognition, 1000);
@@ -136,7 +256,6 @@ const Home = () => {
 
     recognition.onresult = async (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
-      console.log('Recognized speech:', transcript);
 
       if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
         recognition.stop();
@@ -149,14 +268,16 @@ const Home = () => {
       }
     };
 
-    // Keep recognition active every 10s if it stops
+    // Preload voices
+    synth.getVoices();
+
+    // Retry recognition if it stops
     const fallback = setInterval(() => {
       if (!isSpeakingRef.current && !isRecognizingRef.current) {
         safeRecognition();
       }
     }, 10000);
 
-    // Start initial recognition
     setTimeout(safeRecognition, 1000);
 
     return () => {
@@ -165,7 +286,7 @@ const Home = () => {
       setListening(false);
       clearInterval(fallback);
     };
-  }, [userData, getGeminiResponse]);
+  }, []);
 
   return (
     <div className="w-full h-[100vh] bg-gradient-to-t from-black to-[#02023d] flex justify-center items-center flex-col gap-[15px]">
@@ -193,6 +314,7 @@ const Home = () => {
       </div>
 
       <h1 className="text-white text-[18px] font-semibold">I'm {userData?.assistantName}</h1>
+      {listening && <p className="text-green-300 mt-2">🎙 Listening...</p>}
     </div>
   );
 };
