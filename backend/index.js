@@ -15,7 +15,7 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"]
 }))
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 8000
 
 app.use(express.json())
 app.use(cookieParser())

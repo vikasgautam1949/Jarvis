@@ -23,30 +23,21 @@ function UserContext({ children }) {
     }
   };
 
-
-     const getGeminiResponse = async (command, assistantName) => {
-    try {
-      const result = await axios.post(`${serverUrl}/api/user/asktoassistant`, {
-        command,
-        assistantName,
-      }, {
-        withCredentials: true,
-      });
-      return result.data;
-      
-    } catch (error) {
-      console.log(error);
-    }
-   }
-
-
-
-
-
-
-
-
-
+const getGeminiResponse = async (command) => {
+  try {
+    const result = await axios.post(`${serverUrl}/api/user/asktoassistant`, {
+      command,
+      assistantName: userData?.assistantName,
+      userName: userData?.name
+    }, {
+      withCredentials: true,
+    });
+    return result.data;
+  } catch (error) {
+    console.log("getGeminiResponse error:", error?.response?.data || error.message);
+    return { type: 'error', response: "Failed to get assistant response." };
+  }
+};
 
 
 
@@ -73,3 +64,4 @@ function UserContext({ children }) {
 }
 
 export default UserContext;
+
