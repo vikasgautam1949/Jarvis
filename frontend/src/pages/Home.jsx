@@ -8,9 +8,9 @@ const Home = () => {
   const navigate = useNavigate();
   const [listening, setListening] = useState(false);
 
-  const recognitionRef = useRef(null);
   const isSpeakingRef = useRef(false);
-  const isRecognizingRef = useRef(false);
+  // const isRecognizingRef = useRef(false);
+  const recognitionRef = useRef(null);
   const synth = window.speechSynthesis;
 
   const handleLogOut = async () => {
@@ -24,7 +24,7 @@ const Home = () => {
     }
   };
 
-  // const speak = (text) => {
+  
   //   // if (!text) return;
 
   //   const speakWithVoice = () => {
@@ -158,7 +158,6 @@ const Home = () => {
   //       break;
   //   }
   // };
-
 const startRecognition= () =>{
   try {
     recognitionRef.current.start();
@@ -270,7 +269,7 @@ const speak = (text) => {
     recognition.lang = 'en-US';
     recognitionRef.current = recognition;
 
-    // const isRecognizingRef = {current: false};
+    const isRecognizingRef = {current: false};
 
      const safeRecognition = () => {
       if (!isSpeakingRef.current && !isRecognizingRef.current) {
@@ -295,7 +294,7 @@ const speak = (text) => {
       console.log("Recognition ended");
       isRecognizingRef.current = false;
       setListening(false);
-      setTimeout(safeRecognition, 1000);
+      // setTimeout(safeRecognition, 1000);
 
       if (!isSpeakingRef.current) {
         setTimeout(() => {
@@ -328,7 +327,7 @@ const speak = (text) => {
         setListening(false);
          const data = await getGeminiResponse(transcript);
          console.log('Gemini response:', data);
-        // speak(data.response);
+        //  speak(data.response);
         handleCommand(data);
       }
     };

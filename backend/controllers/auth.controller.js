@@ -1,9 +1,7 @@
-// import { message } from "prompt"
 import User from '../models/user.model.js';
-
 import bcrypt from "bcryptjs"
 import genToken from "../config/token.js"
-// import { message } from "prompt"
+
 
 export const signup = async (req, res) =>{
     try {
